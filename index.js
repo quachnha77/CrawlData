@@ -57,6 +57,24 @@ const scrapeArticle = async (url) => {
                 tags.push(tagName);
             }
         });
+ 
+
+        /// lấy ảnh (nếu có)
+        
+        // $('img').each((i, el) => {
+        //     const src = $(el).attr('src');
+        //     if (src) {
+        //         images.push(src.trim()); // Lưu đường dẫn của ảnh
+        //     }
+        // });
+        const images = [];
+        $('img').each((i, el) => {
+            const src = $(el).attr('src');
+            if (src && src.startsWith('http')) {
+                images.push(src.trim());
+            }
+        });
+
 
         // kiểm tra tiêu đề và nội dung
         if (!title || content.length === 0) {
@@ -64,7 +82,7 @@ const scrapeArticle = async (url) => {
             return null; // Bỏ qua bài báo
         }
 
-        return { title, content: content.join('\n'), tags }; // kết hợp thành 1 chuỗi, và cách nhau bởi /n
+        return { title, content: content.join('\n'), tags, images}; // kết hợp thành 1 chuỗi, và cách nhau bởi /n
     }catch(error) {
         console.error(`Lỗi ${url}:`, error.message);
         return null;
@@ -101,7 +119,8 @@ const saveArticleToDatabase = async (pool, article, link) => {
         const articleData = JSON.stringify({
             title: article.title,
             content: article.content,
-            tags: article.tags
+            tags: article.tags,
+            images: article.images
         });
 
         const sql = `
@@ -150,7 +169,7 @@ const main = async () => {
     const articles = [];
 
     // duyệt qua từng bài báo và lưu vào cơ sở dữ liệu
-    for (let i = 0; i < Math.min(500, links.length); i++) {
+    for (let i = 0; i < Math.min(100, links.length); i++) {
         const link = links[i];
 
         // kiểm tra link đã tồn tại hay chưa
